@@ -1,8 +1,14 @@
 /** @type {import('next').NextConfig} */
+import nextPWA from 'next-pwa';
+
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   productionBrowserSourceMaps: false
 };
 
-export default nextConfig;
+const withPWA = nextPWA({
+  dest: 'public',
+});
+
+export default withPWA(nextConfig);
