@@ -1,4 +1,8 @@
-import { EllipticCurve, SECP256R1 } from "@/lib/crypto/math/EllipticCurve";
+import {
+  BrainpoolP512r1,
+  EllipticCurve,
+  SECP256R1,
+} from "@/lib/crypto/math/EllipticCurve";
 
 describe("Eliptic Curve test", () => {
   it("should able to do addition", () => {
@@ -53,6 +57,14 @@ describe("Eliptic Curve test", () => {
 
 describe("Eliptic Curve secp256r1 test", () => {
   const curve = new SECP256R1();
+
+  it("should able to create G point", () => {
+    expect(curve.G).toBeDefined();
+  });
+});
+
+describe("Eliptic Curve BrainpoolP512r1 test", () => {
+  const curve = new BrainpoolP512r1();
 
   it("should able to create G point", () => {
     expect(curve.G).toBeDefined();

@@ -13,7 +13,7 @@ export default class ElipticCurveDiffieHellman {
   ) {}
 
   public generatePairKey(): [bigint, EllipticCurvePoint] {
-    const privateKey = this.random.nextBigInt(256);
+    const privateKey = this.random.nextBigIntRange(BigInt(0), this.curve.N);
     const publicKey = this.curve.G.multiply(privateKey);
 
     return [privateKey, publicKey];
@@ -21,14 +21,15 @@ export default class ElipticCurveDiffieHellman {
 
   public generateSharedSecret(
     peerPublicKey: EllipticCurvePoint,
-    ownPrivateKey: bigint
+    ownPrivateKey: bigint,
+    size: number = 32
   ): Uint8Array {
     const sharedKey = peerPublicKey.multiply(ownPrivateKey);
 
     const calculatedResult = encodeBigInteger(sharedKey.X);
-    const result = new Uint8Array(32);
+    const result = new Uint8Array(size);
 
-    for (let i = 0; i < calculatedResult.length && i < 32; i++) {
+    for (let i = 0; i < calculatedResult.length && i < size; i++) {
       result[i] = calculatedResult[i];
     }
 
