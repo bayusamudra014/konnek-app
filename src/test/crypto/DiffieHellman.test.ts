@@ -1,4 +1,4 @@
-import ElipticCurveDiffieHellman from "@/lib/crypto/ecdh/ElipticCurveDiffieHellman";
+import ElipticCurveDiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
 import { SECP256R1 } from "@/lib/crypto/math/EllipticCurve";
 
 describe("Diffie Hellman Test", () => {
