@@ -24,3 +24,14 @@ export function readFromFile(path: string): Uint8Array {
 export function writeToFile(path: string, bytes: Uint8Array): void {
   fs.writeFileSync(path, Buffer.from(bytes));
 }
+
+export function encodeBigInteger(number: bigint): Uint8Array {
+  const result = [] as number[];
+
+  while (number > BigInt(0)) {
+    result.push(Number(number % BigInt(256)));
+    number >>= BigInt(8);
+  }
+
+  return new Uint8Array(result);
+}

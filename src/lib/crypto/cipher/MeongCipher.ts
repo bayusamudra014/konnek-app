@@ -1,5 +1,5 @@
-import { xorArray } from "../ArrayUtil";
-import { matrixMultiplication } from "../Matrix";
+import { xorArray } from "@/lib/ArrayUtil";
+import { matrixMultiplication } from "@/lib/Matrix";
 import { Cipher } from "./Cipher";
 
 const N_ROUND = 10;

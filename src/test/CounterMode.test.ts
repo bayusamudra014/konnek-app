@@ -1,7 +1,7 @@
-import { CTRBlock } from "@/lib/block/counter";
+import { CTRBlock } from "@/lib/crypto/block/counter";
 import { NullBlockEncryption } from "./util";
 import { decodeString, encodeString } from "@/lib/encoder/Encoder";
-import { MeongCipher } from "@/lib/cipher/MeongCipher";
+import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 
 describe("Counter mode test", () => {
   it("should able to run CTR block mode with Null Block Encrytion", () => {

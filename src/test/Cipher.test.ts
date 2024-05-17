@@ -10,7 +10,7 @@ import {
   splitBlock,
   mergeBlock,
   MeongCipher,
-} from "@/lib/cipher/MeongCipher";
+} from "@/lib/crypto/cipher/MeongCipher";
 
 describe("Meong cipher test", () => {
   it("shoud able to encrypt and decrypt", () => {

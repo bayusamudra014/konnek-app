@@ -1,14 +1,10 @@
 import { CipherType } from "./CipherType";
 import { ValidationError } from "./ValidationError";
-import { CTRBlock } from "./block/counter";
-import { Cipher } from "./cipher/Cipher";
-import { MeongCipher } from "./cipher/MeongCipher";
+import { CTRBlock } from "./crypto/block/counter";
+import { Cipher } from "./crypto/cipher/Cipher";
+import { MeongCipher } from "./crypto/cipher/MeongCipher";
 import { encodeString } from "./encoder/Encoder";
 import { Padding } from "./encoder/Padding";
-import CBC from "./block/CBC";
-import CFB from "./block/CFB";
-import { OFB } from "./block/OFB";
-import ECB from "./block/ECB";
 
 export function encryptFromString(
   type: CipherType,
@@ -70,14 +66,6 @@ export function getCipher(type: CipherType, key: string): Cipher {
   switch (type) {
     case CipherType.CTR:
       return new CTRBlock(cipher);
-    case CipherType.CBC:
-      return new CBC(cipher);
-    case CipherType.CFB:
-      return new CFB(cipher);
-    case CipherType.OFB:
-      return new OFB(cipher);
-    case CipherType.ECB:
-      return new ECB(cipher);
     default:
       throw new ValidationError("Invalid block type");
   }

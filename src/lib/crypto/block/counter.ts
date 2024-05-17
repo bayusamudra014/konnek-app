@@ -1,14 +1,17 @@
-import { Cipher } from "@/lib/cipher/Cipher";
+import { Cipher } from "@/lib/crypto/cipher/Cipher";
 import { Padding } from "@/lib/encoder/Padding";
 import { mergeUint8Array, splitUint8Array, xorArray } from "@/lib/ArrayUtil";
-import { numberToUint8Array } from "../CipherUtil";
+import { numberToUint8Array } from "@/lib/CipherUtil";
 
 const CTR_BLOCK_SIZE = 16;
 
 export class CTRBlock implements Cipher {
   private pad = new Padding(CTR_BLOCK_SIZE, 0, 256);
 
-  constructor(private blockCipher: Cipher) {}
+  constructor(
+    private blockCipher: Cipher,
+    private initialCounter: number = 0
+  ) {}
 
   encrypt(plaintext: Uint8Array): Uint8Array {
     const paddedPlaintext = this.pad.pad(plaintext);
@@ -23,7 +26,7 @@ export class CTRBlock implements Cipher {
   private doOperation(data: Uint8Array) {
     const blocks = splitUint8Array(data, CTR_BLOCK_SIZE);
 
-    let counter = 0;
+    let counter = this.initialCounter;
     const result = [];
 
     for (const block of blocks) {
