@@ -35,3 +35,14 @@ export function encodeBigInteger(number: bigint): Uint8Array {
 
   return new Uint8Array(result);
 }
+
+export function decodeBigInteger(bytes: Uint8Array): bigint {
+  let result = BigInt(0);
+
+  for (let i = bytes.length - 1; i >= 0; i--) {
+    result <<= BigInt(8);
+    result += BigInt(bytes[i]);
+  }
+
+  return result;
+}

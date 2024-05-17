@@ -132,11 +132,21 @@ export class EllipticCurve {
     x = typeof x === "number" ? BigInt(x) : x;
     y = typeof y === "number" ? BigInt(y) : y;
 
-    if ((y * y) % this.p != (x * x * x + this.a * x + this.b) % this.p) {
+    if (this.isPointOnCurve(x, y)) {
       throw new Error("Point is not on the curve");
     }
 
     return new EllipticCurvePoint(x, y, this.p, this.a, this.b);
+  }
+
+  public isPointOnCurve(x: bigint | number, y: bigint | number): boolean {
+    x = typeof x === "number" ? BigInt(x) : x;
+    y = typeof y === "number" ? BigInt(y) : y;
+    return (y * y) % this.p != (x * x * x + this.a * x + this.b) % this.p;
+  }
+
+  public calculateYSquared(x: bigint): bigint {
+    return (x * x * x + this.a * x + this.b) % this.p;
   }
 
   public createInfinityPoint(): EllipticCurvePoint {
@@ -155,6 +165,18 @@ export class EllipticCurve {
 
   get G(): EllipticCurvePoint {
     throw new Error("Not implemented");
+  }
+
+  get P(): bigint {
+    return this.p;
+  }
+
+  get A(): bigint {
+    return this.a;
+  }
+
+  get B(): bigint {
+    return this.b;
   }
 }
 

@@ -19,4 +19,12 @@ export abstract class Random {
 
     return result;
   }
+
+  public nextBigIntRange(min: bigint, max: bigint): bigint {
+    return min + BigInt(Math.floor(this.nextFloat() * Number(max - min)));
+  }
+
+  public nextFloat(): number {
+    return this.nextByte() / 256;
+  }
 }
