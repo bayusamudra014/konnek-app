@@ -8,7 +8,7 @@ import BlumBlumShub from "@/lib/crypto/random/BlumBlumShub";
 import { bigmodpow, bigmodsqrt } from "@/lib/crypto/math/modulo";
 import { Padding } from "./Padding";
 
-export class ElipticEncoder {
+export class CipherElipticEncoder {
   private padding: Padding;
 
   constructor(

@@ -29,6 +29,18 @@ export class EllipticCurvePoint {
     return this.y;
   }
 
+  get A(): bigint {
+    return this.a;
+  }
+
+  get B(): bigint {
+    return this.b;
+  }
+
+  get P(): bigint {
+    return this.p;
+  }
+
   public equals(point: EllipticCurvePoint): boolean {
     return this.x == point.x && this.y == point.y;
   }
