@@ -23,7 +23,7 @@ const messaging = getMessaging(firebaseApp);
 
 onBackgroundMessage(messaging, (payload) => {
   console.log(
-    "[firebase-messaging-sw.js] Received background message ",
+    "[firebase-messaging-sw.js] Received background message",
     payload
   );
 

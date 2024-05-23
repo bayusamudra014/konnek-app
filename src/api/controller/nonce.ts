@@ -1,3 +1,5 @@
+import "server-only";
+
 import { generateServerNonce } from "@/lib/crypto/Nonce";
 import log from "@/lib/logger";
 import { NextResponse } from "next/server";

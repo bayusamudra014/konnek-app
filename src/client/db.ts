@@ -1,3 +1,4 @@
+import "client-only";
 import Dexie, { Table } from "dexie";
 
 export interface Message {

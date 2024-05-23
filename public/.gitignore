@@ -2,3 +2,4 @@ sw.js
 *.js
 *.txt
 *.map
+!firebase-messaging-sw.js
