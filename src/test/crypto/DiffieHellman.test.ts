@@ -1,9 +1,9 @@
-import ElipticCurveDiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
+import DiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
 import { BrainpoolP512r1, SECP256R1 } from "@/lib/crypto/math/EllipticCurve";
 
 describe("Diffie Hellman Test", () => {
   it("should able to create secret", () => {
-    const ecdh = new ElipticCurveDiffieHellman(new SECP256R1());
+    const ecdh = new DiffieHellman(new SECP256R1());
     const [alicePrivate, alicePublic] = ecdh.generatePairKey();
     const [bobPrivate, bobPublic] = ecdh.generatePairKey();
 
@@ -15,7 +15,7 @@ describe("Diffie Hellman Test", () => {
   });
 
   it("should able to create secret (brainpoolp512r1)", () => {
-    const ecdh = new ElipticCurveDiffieHellman(new BrainpoolP512r1());
+    const ecdh = new DiffieHellman(new BrainpoolP512r1());
     const [alicePrivate, alicePublic] = ecdh.generatePairKey();
     const [bobPrivate, bobPublic] = ecdh.generatePairKey();
 

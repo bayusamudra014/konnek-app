@@ -1,6 +1,8 @@
+import { encodeBigInteger } from "@/lib/encoder/Encoder";
 import { bigmodinv } from "./modulo";
+import { Group, GroupPoint } from "./Group";
 
-export class EllipticCurvePoint {
+export class EllipticCurvePoint implements GroupPoint {
   private x: bigint;
   private y: bigint;
   private p: bigint;
@@ -19,6 +21,17 @@ export class EllipticCurvePoint {
     this.p = typeof p === "number" ? BigInt(p) : p;
     this.a = typeof a === "number" ? BigInt(a) : a;
     this.b = typeof b === "number" ? BigInt(b) : b;
+  }
+
+  toBytes(): Uint8Array {
+    const x = encodeBigInteger(this.x);
+    const y = encodeBigInteger(this.y);
+
+    const result = new Uint8Array(x.length + y.length);
+    result.set(x, 0);
+    result.set(y, x.length);
+
+    return result;
   }
 
   get X(): bigint {
@@ -125,7 +138,7 @@ export class EllipticCurvePoint {
   }
 }
 
-export class EllipticCurve {
+export class EllipticCurve implements Group {
   private p: bigint;
   private a: bigint;
   private b: bigint;

@@ -1,20 +1,15 @@
-import {
-  EllipticCurve,
-  type EllipticCurvePoint,
-} from "@/lib/crypto/math/EllipticCurve";
+import { type EllipticCurvePoint } from "@/lib/crypto/math/EllipticCurve";
 import { Random } from "@/lib/crypto/random";
-import BlumBlumShub from "../random/BlumBlumShub";
+import BlumBlumShub from "@/lib/crypto/random/BlumBlumShub";
 import { encodeBigInteger } from "@/lib/encoder/Encoder";
+import { Group } from "@/lib/crypto/math/Group";
 
-export default class ElipticCurveDiffieHellman {
-  constructor(
-    private curve: EllipticCurve,
-    private random: Random = BlumBlumShub
-  ) {}
+export default class DiffieHellman {
+  constructor(private _group: Group, private random: Random = BlumBlumShub) {}
 
   public generatePairKey(): [bigint, EllipticCurvePoint] {
-    const privateKey = this.random.nextBigIntRange(BigInt(0), this.curve.N);
-    const publicKey = this.curve.G.multiply(privateKey);
+    const privateKey = this.random.nextBigIntRange(BigInt(0), this._group.N);
+    const publicKey = this._group.G.multiply(privateKey);
 
     return [privateKey, publicKey];
   }

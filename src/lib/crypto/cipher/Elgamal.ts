@@ -13,18 +13,18 @@ import {
   encodeArrayUint8,
 } from "@/lib/encoder/Encoder";
 
-export class ElgamalCipher implements Cipher {
+export class ECElgamalCipher implements Cipher {
   private _encoder: CipherElipticEncoder;
 
   constructor(
-    private _curve: EllipticCurve,
+    private _group: EllipticCurve,
     _dictionaryByteSize: number,
     private _random: Random = BlumBlumShub,
     private _key: bigint | null = null,
     private _peerPublic: EllipticCurvePoint | null = null
   ) {
     this._encoder = new CipherElipticEncoder(
-      _curve,
+      _group,
       _dictionaryByteSize,
       _random
     );
@@ -42,12 +42,12 @@ export class ElgamalCipher implements Cipher {
     return this._peerPublic!;
   }
 
-  generateKey() {
-    const privateKey = this._random.nextBigIntRange(BigInt(0), this._curve.N);
-    const publicKey = this._curve.G.multiply(privateKey);
+  generatePairKey(): [bigint, EllipticCurvePoint] {
+    const privateKey = this._random.nextBigIntRange(BigInt(0), this._group.N);
+    const publicKey = this._group.G.multiply(privateKey);
 
     this._key = privateKey;
-    return publicKey;
+    return [privateKey, publicKey];
   }
 
   encrypt(plaintext: Uint8Array): Uint8Array {
@@ -61,9 +61,9 @@ export class ElgamalCipher implements Cipher {
     for (const i of encoded) {
       const k = this._random.nextBigIntRange(
         BigInt(0),
-        this._curve.N - BigInt(1)
+        this._group.N - BigInt(1)
       );
-      const r = this._curve.G.multiply(k);
+      const r = this._group.G.multiply(k);
       const s = this._peerPublic.multiply(k).add(i);
 
       result.push(this.encodeEncrypted(r, s));
@@ -103,9 +103,9 @@ export class ElgamalCipher implements Cipher {
     data: Uint8Array
   ): [EllipticCurvePoint, EllipticCurvePoint] {
     const [rX, rY, sX, sY] = decodeArrayBigInteger(data);
-    const rA = this._curve.A;
-    const rB = this._curve.B;
-    const rP = this._curve.P;
+    const rA = this._group.A;
+    const rB = this._group.B;
+    const rP = this._group.P;
 
     return [
       new EllipticCurvePoint(
