@@ -8,8 +8,12 @@ export class MeongCipher implements Cipher {
   private keys: Uint8Array[];
 
   constructor(masterkey: Uint8Array) {
-    if (masterkey.length != 16) {
+    if (masterkey.length < 16) {
       throw new Error("Invalid key length");
+    }
+
+    if (masterkey.length > 16) {
+      masterkey = masterkey.slice(0, 16);
     }
 
     this.keys = roundKeyGeneration(masterkey);

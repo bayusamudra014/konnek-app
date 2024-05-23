@@ -26,8 +26,9 @@ onBackgroundMessage(messaging, (payload) => {
     "[firebase-messaging-sw.js] Received background message ",
     payload
   );
+
   // Customize notification here
-  const notificationTitle = "Background Message Title";
+  const notificationTitle = "Konnek Messaging";
   const notificationOptions = {
     body: "Background Message body.",
     icon: "/firebase-logo.png",

@@ -4,7 +4,7 @@ export async function GET() {
   return NextResponse.json(
     {
       status: "success",
-      message: "Server is running",
+      message: "server is running",
       data: null,
     },
     { status: 200 }

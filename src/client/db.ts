@@ -20,8 +20,8 @@ export class Database extends Dexie {
   constructor() {
     super("AppDatabase");
     this.version(1).stores({
-      messages: "id, content, sender, receiver",
-      friends: "id, name, pubkey",
+      message: "id, timestamp, from, to",
+      friends: "id, userid, certificate",
     });
     this.messages = this.table("messages");
     this.friends = this.table("friends");

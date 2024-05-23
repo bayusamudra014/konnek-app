@@ -1,4 +1,8 @@
-import { encodeBigInteger } from "@/lib/encoder/Encoder";
+import {
+  decodeArrayBigInteger,
+  encodeArrayBigInteger,
+  encodeBigInteger,
+} from "@/lib/encoder/Encoder";
 import { bigmodinv } from "./modulo";
 import { Group, GroupPoint } from "./Group";
 
@@ -24,14 +28,10 @@ export class EllipticCurvePoint implements GroupPoint {
   }
 
   toBytes(): Uint8Array {
-    const x = encodeBigInteger(this.x);
-    const y = encodeBigInteger(this.y);
+    const x = this.x;
+    const y = this.y;
 
-    const result = new Uint8Array(x.length + y.length);
-    result.set(x, 0);
-    result.set(y, x.length);
-
-    return result;
+    return encodeArrayBigInteger([x, y]);
   }
 
   get X(): bigint {
@@ -269,4 +269,13 @@ export class BrainpoolP512r1 extends EllipticCurve {
       "0xaadd9db8dbe9c48b3fd4e6ae33c9fc07cb308db3b3c9d20ed6639cca70330870553e5c414ca92619418661197fac10471db1d381085ddaddb58796829ca90069"
     );
   }
+}
+
+export function encodeElipticCurve(point: EllipticCurvePoint): Uint8Array {
+  return encodeArrayBigInteger([point.A, point.B, point.P, point.X, point.Y]);
+}
+
+export function decodeElipticCurve(data: Uint8Array): EllipticCurvePoint {
+  const [a, b, p, x, y] = decodeArrayBigInteger(data);
+  return new EllipticCurvePoint(x, y, p, a, b);
 }
