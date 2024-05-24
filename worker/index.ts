@@ -1,6 +1,7 @@
 import { onBackgroundMessage } from "firebase/messaging/sw";
 import { initializeApp } from "firebase/app";
 import { getMessaging } from "firebase/messaging/sw";
+import { getToken } from "firebase/messaging";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -21,18 +22,19 @@ const firebaseApp = initializeApp(firebaseConfig);
 // messages.
 const messaging = getMessaging(firebaseApp);
 
-onBackgroundMessage(messaging, (payload) => {
-  console.log(
-    "[firebase-messaging-sw.js] Received background message",
-    payload
-  );
+console.log(firebaseConfig);
 
-  // Customize notification here
-  const notificationTitle = "Konnek Messaging";
-  const notificationOptions = {
-    body: "Background Message body.",
-    icon: "/firebase-logo.png",
-  };
+getToken(messaging, {
+  vapidKey: process.env.NEXT_PUBLIC_FCM_VAPID_KEY,
+}).then(() =>
+  onBackgroundMessage(messaging, (payload) => {
+    console.log(
+      "[firebase-messaging-sw.js] Received background message",
+      payload
+    );
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
+    // Customize notification here
+    const notificationTitle = "Konnek Messaging";
+    self.registration.showNotification(notificationTitle);
+  })
+);
