@@ -9,6 +9,8 @@ const nextConfig = {
 
 const withPWA = nextPWA({
   dest: 'public',
+  offlineGoogleAnalytics: true,
+
 });
 
 export default withPWA(nextConfig);
