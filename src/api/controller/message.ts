@@ -8,7 +8,7 @@ import { parseToken } from "./auth";
 import storageAdmin from "../storage";
 import messagingAdmin from "../messaging";
 
-export async function getMessages(token: string, after: string) {
+export async function getMessages(token: string, after: string | null = null) {
   let userId, sessionKey;
   try {
     [userId, sessionKey] = await parseToken(token);
@@ -24,19 +24,36 @@ export async function getMessages(token: string, after: string) {
     );
   }
 
-  const cipher = new MeongCipher(new Uint8Array(sessionKey));
-  const afterDec = Number(decodeBigInteger(cipher.decrypt(Buffer.from(after))));
+  const cipher = new MeongCipher(sessionKey);
+  let data;
 
-  const data = await firestoreAdmin
-    .collection("message")
-    .where("to", "==", userId)
-    .where("timestmap", ">", afterDec)
-    .get();
+  if (after) {
+    const afterDec = Number(
+      decodeBigInteger(cipher.decrypt(Buffer.from(after)))
+    );
+
+    data = await firestoreAdmin
+      .collection(`message/${userId}`)
+      .where("timestamp", ">", afterDec)
+      .orderBy("timestamp")
+      .get();
+  } else {
+    data = await firestoreAdmin
+      .collection(`message/${userId}`)
+      .orderBy("timestamp")
+      .get();
+  }
 
   const result = [] as any[];
   data.forEach((el) => {
-    const { to, from, timestamp } = el.data();
-    result.push({ to, from, timestamp });
+    const { to, from, timestamp, signature, message } = el.data();
+    result.push({
+      to,
+      from,
+      timestamp,
+      message: Buffer.from(message).toString("base64"),
+      signature: Buffer.from(signature).toString("base64"),
+    });
   });
 
   const jsonEncrypted = cipher.encrypt(Buffer.from(JSON.stringify(result)));
@@ -49,7 +66,7 @@ export async function getMessages(token: string, after: string) {
 }
 
 export async function sendMessage(token: string, data: string) {
-  let userId, sessionKey;
+  let userId: string, sessionKey: Uint8Array;
   try {
     [userId, sessionKey] = await parseToken(token);
   } catch (err) {
@@ -64,10 +81,20 @@ export async function sendMessage(token: string, data: string) {
     );
   }
 
-  const cipher = new MeongCipher(new Uint8Array(sessionKey));
-  const { to, message } = JSON.parse(
-    Buffer.from(cipher.decrypt(Buffer.from(data, "base64"))).toString("utf-8")
-  );
+  const cipher = new MeongCipher(sessionKey);
+
+  const decrypted = Buffer.from(
+    cipher.decrypt(Buffer.from(data, "base64"))
+  ).toString("utf-8");
+  const {
+    to,
+    message: rawMessage,
+    signature: rawSignature,
+    timestamp,
+  } = JSON.parse(decrypted);
+
+  const signature = rawSignature ? Buffer.from(rawSignature, "base64") : null;
+  const message = Buffer.from(rawMessage, "base64");
 
   if (/^[a-zA-Z0-9-\_]+$/.test(to) !== true) {
     log.info({
@@ -97,10 +124,19 @@ export async function sendMessage(token: string, data: string) {
     );
   }
 
-  await firestoreAdmin.collection("message").add({
+  await firestoreAdmin.collection(`message/${userId}`).add({
     from: userId,
     to,
     message,
+    timestamp,
+    signature,
+  });
+  await firestoreAdmin.collection(`message/${to}`).add({
+    from: userId,
+    to,
+    message,
+    timestamp,
+    signature,
   });
 
   const loginInfo = (
@@ -110,7 +146,7 @@ export async function sendMessage(token: string, data: string) {
   if (loginInfo && loginInfo.firebaseId) {
     await messagingAdmin.send({
       token: loginInfo.firebaseId,
-      data: { msg: "new_message" },
+      data: { msg: "new_message", from: userId, to },
     });
   } else if (loginInfo && !loginInfo.firebaseId) {
     log.debug({

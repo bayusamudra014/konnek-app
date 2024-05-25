@@ -8,7 +8,6 @@ import {
   verifyCertificateRequest,
 } from "@/lib/crypto/Certificate";
 import { NextResponse } from "next/server";
-import storageAdmin from "@/api/storage";
 import fs from "fs";
 import log from "@/lib/logger";
 import { verifyServerNonce } from "@/lib/crypto/Nonce";
@@ -20,7 +19,8 @@ const macKey = process.env.MAC_KEY;
 
 export async function registerUser(
   certificateRequest: string,
-  serverNonceToken: string
+  serverNonceToken: string,
+  ip: string | null
 ) {
   if (!caPrivateKey || !fs.existsSync(caPrivateKey)) {
     log.error({ name: "register", msg: "no_admin_private_key" });
@@ -193,6 +193,8 @@ export async function registerUser(
   }
 
   const encodedCert = Buffer.from(rawCert).toString("base64");
+
+  log.info({ name: "register", msg: "registered_user", data: { userId, ip } });
 
   return NextResponse.json(
     {

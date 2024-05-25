@@ -22,12 +22,11 @@ const tokenLifetime = parseInt(process.env.REFRESH_TOKEN_LIVETIME ?? "7200");
 
 export async function login(
   userId: string,
-  serverNonce: bigint,
   diffieHellmanPublicKey: Uint8Array,
   serverNonceToken: string,
   firebaseId: string,
   signature: Uint8Array,
-  ip: string
+  ip: string | null
 ) {
   if (/^[a-zA-Z0-9-\_]+$/.test(userId) !== true) {
     log.info({
@@ -57,21 +56,9 @@ export async function login(
     );
   }
 
+  let serverNonce;
   try {
-    const nonce = await verifyServerNonce(serverNonceToken, macKey);
-
-    if (nonce !== serverNonce) {
-      return NextResponse.json(
-        {
-          status: "failed",
-          message: "invalid nonce",
-          data: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    serverNonce = nonce;
+    serverNonce = await verifyServerNonce(serverNonceToken, macKey);
   } catch (err) {
     log.info({ name: "login", msg: "bad_nonce" });
     return NextResponse.json(
@@ -209,7 +196,9 @@ export async function login(
   );
 
   const cipher = new MeongCipher(sharedSecret);
-  const encToken = Buffer.from(cipher.encrypt(Buffer.from(token)));
+  const encToken = Buffer.from(cipher.encrypt(Buffer.from(token))).toString(
+    "base64"
+  );
   const dhPublicServer = encodeElipticCurve(pubkey);
 
   // Save user info to database
@@ -228,7 +217,7 @@ export async function login(
     message: "login success",
     data: {
       token: encToken,
-      publicKey: dhPublicServer,
+      dh_public: dhPublicServer,
     },
   });
 }

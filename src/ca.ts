@@ -1,7 +1,6 @@
 import fs from "fs";
-import { encodePrivateKey, generatePrivateKey } from "@/lib/crypto/Key";
+import { generatePrivateKey } from "@/lib/crypto/Key";
 import {
-  encodeCertificate,
   encodeCertificateKey,
   generateCertificate,
   generateCertificateKey,
