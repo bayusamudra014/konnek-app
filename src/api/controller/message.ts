@@ -1,3 +1,5 @@
+import "server-only";
+
 import { decodeBigInteger } from "@/lib/encoder/Encoder";
 import log from "@/lib/logger";
 

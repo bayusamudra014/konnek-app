@@ -1,3 +1,5 @@
+import "server-only";
+
 import jwt from "jsonwebtoken";
 import { decodeArrayUint8 } from "@/lib/encoder/Encoder";
 

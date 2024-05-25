@@ -1,3 +1,5 @@
+import "server-only";
+
 import { verifyServerNonce } from "@/lib/crypto/Nonce";
 import log from "@/lib/logger";
 import { NextResponse } from "next/server";
@@ -13,7 +15,7 @@ import { encodeArrayUint8, encodeBigInteger } from "@/lib/encoder/Encoder";
 import DiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
 import jwt from "jsonwebtoken";
 import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
-import firestoreAdmin from "../firestore";
+import firestoreAdmin from "@/api/firestore";
 
 const macKey = process.env.MAC_KEY;
 const encryptionKey = process.env.ENCRYPTION_KEY;
