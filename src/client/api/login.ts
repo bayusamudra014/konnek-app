@@ -6,6 +6,7 @@ import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 import DiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
 import {
   BrainpoolP512r1,
+  decodeElipticCurve,
   encodeElipticCurve,
 } from "@/lib/crypto/math/EllipticCurve";
 import { encodeArrayUint8, encodeBigInteger } from "@/lib/encoder/Encoder";
@@ -67,7 +68,11 @@ export async function login(
       return { isSuccess: false, message: "login failed: " + data.message };
     }
 
-    const { token: encryptedToken, dh_public: serverPubDh } = data.data;
+    const { token: encryptedToken, dh_public: rawServerPubDh } = data.data;
+    const serverPubDh = decodeElipticCurve(
+      Buffer.from(rawServerPubDh, "base64")
+    );
+
     const sessionKey = dh.generateSharedSecret(serverPubDh, privDh);
     const cipher = new MeongCipher(sessionKey);
 

@@ -5,7 +5,6 @@ import { getCertificate } from "../certificate";
 import { verifyCertificate } from "@/lib/crypto/Certificate";
 import {
   BrainpoolP512r1,
-  EllipticCurvePoint,
   decodeElipticCurve,
   encodeElipticCurve,
 } from "@/lib/crypto/math/EllipticCurve";
@@ -199,7 +198,9 @@ export async function login(
   const encToken = Buffer.from(cipher.encrypt(Buffer.from(token))).toString(
     "base64"
   );
-  const dhPublicServer = encodeElipticCurve(pubkey);
+  const dhPublicServer = Buffer.from(encodeElipticCurve(pubkey)).toString(
+    "base64"
+  );
 
   // Save user info to database
   await firestoreAdmin.collection(`user_login`).doc(userId).set({
