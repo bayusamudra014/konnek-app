@@ -1,16 +1,18 @@
 import "server-only";
-import { Cache } from "memory-cache";
+import NodeCache from "node-cache";
 import { Certificate, decodeCertificate } from "@/lib/crypto/Certificate";
 import storageAdmin from "./storage";
 
-const cache = new Cache<string, Certificate>();
+const cache = new NodeCache();
 const CACHE_TIME = parseInt(process.env.NEXT_PUBLIC_CACHE_TIME ?? "30_000");
 
 const userBucket = storageAdmin.bucket();
 
-export async function getCertificate(userId: string) {
+export async function getCertificate(
+  userId: string
+): Promise<Certificate | null> {
   if (cache.get(userId)) {
-    return cache.get(userId);
+    return cache.get(userId) ?? null;
   }
 
   if (/^[a-zA-Z0-9-\_]+$/g.test(userId) !== true) {
@@ -23,7 +25,7 @@ export async function getCertificate(userId: string) {
   }
 
   const certificate = await decodeCertificate(downloaded, "raw");
-  cache.put(userId, certificate, CACHE_TIME);
+  cache.set(userId, certificate, CACHE_TIME);
 
   return certificate;
 }
