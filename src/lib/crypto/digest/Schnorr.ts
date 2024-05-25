@@ -67,6 +67,10 @@ export class SchnorrSignature implements Digest {
     }
 
     const [hashData, yBytes] = decodeArrayUint8(signatureDigest);
+    if (hashData === undefined || yBytes === undefined) {
+      return false;
+    }
+
     const e = decodeBigInteger(hashData);
     const y = decodeBigInteger(yBytes);
 

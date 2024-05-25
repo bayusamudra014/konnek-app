@@ -2,7 +2,10 @@ import {
   BrainpoolP512r1,
   EllipticCurve,
   SECP256R1,
+  decodeElipticCurve,
+  encodeElipticCurve,
 } from "@/lib/crypto/math/EllipticCurve";
+import BlumBlumShub from "@/lib/crypto/random/BlumBlumShub";
 
 describe("Eliptic Curve test", () => {
   it("should able to do addition", () => {
@@ -61,6 +64,17 @@ describe("Eliptic Curve secp256r1 test", () => {
   it("should able to create G point", () => {
     expect(curve.G).toBeDefined();
   });
+
+  it("should able to encode and decode correctly", () => {
+    const point = curve.G.multiply(
+      BlumBlumShub.nextBigIntRange(BigInt(0), curve.N)
+    );
+
+    const encoded = encodeElipticCurve(point);
+    const decoded = decodeElipticCurve(encoded);
+
+    expect(decoded.equals(point)).toBeTruthy();
+  });
 });
 
 describe("Eliptic Curve BrainpoolP512r1 test", () => {
@@ -68,5 +82,16 @@ describe("Eliptic Curve BrainpoolP512r1 test", () => {
 
   it("should able to create G point", () => {
     expect(curve.G).toBeDefined();
+  });
+
+  it("should able to encode and decode correctly", () => {
+    const point = curve.G.multiply(
+      BlumBlumShub.nextBigIntRange(BigInt(0), curve.N)
+    );
+
+    const encoded = encodeElipticCurve(point);
+    const decoded = decodeElipticCurve(encoded);
+
+    expect(decoded.equals(point)).toBeTruthy();
   });
 });

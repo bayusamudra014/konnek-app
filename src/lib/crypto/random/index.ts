@@ -12,7 +12,7 @@ export abstract class Random {
   public nextBigInt(n_bytes: number): bigint {
     let result = BigInt(0);
 
-    for (let i = 0; i < n_bytes; i += 8) {
+    for (let i = 0; i < n_bytes; i += 1) {
       result += BigInt(this.nextByte());
       result <<= BigInt(8);
     }
@@ -21,7 +21,13 @@ export abstract class Random {
   }
 
   public nextBigIntRange(min: bigint, max: bigint): bigint {
-    return min + BigInt(Math.floor(this.nextFloat() * Number(max - min)));
+    const diff = max - min;
+    const n_bytes = diff.toString(2).length / 8;
+
+    const random = this.nextBigInt(n_bytes);
+    const result = (random % diff) + min;
+
+    return result;
   }
 
   public nextFloat(): number {

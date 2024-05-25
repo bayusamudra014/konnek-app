@@ -9,6 +9,7 @@ import {
 import { ECElgamalCipher } from "./cipher/Elgamal";
 import {
   decodeArrayUint8,
+  decodeBigInteger,
   encodeArrayUint8,
   encodeBigInteger,
 } from "../encoder/Encoder";
@@ -59,14 +60,15 @@ export async function encodePrivateKey(
 ) {
   const { signPrivateKey, signPublicKey, encPrivateKey, encPublicKey } = key;
 
-  const data = JSON.stringify({
-    sign_priv: Buffer.from(encodeBigInteger(signPrivateKey)).toString("base64"),
-    enc_priv: Buffer.from(encodeBigInteger(encPrivateKey)).toString("base64"),
-    sign_pub: Buffer.from(encodeElipticCurve(signPublicKey)).toString("base64"),
-    enc_pub: Buffer.from(encodeElipticCurve(encPublicKey)).toString("base64"),
-    sign_alg: SIGN_ALGORITHM,
-    enc_alg: ENC_ALGORITHM,
-  });
+  const payload = [
+    encodeBigInteger(signPrivateKey),
+    encodeElipticCurve(signPublicKey),
+    encodeBigInteger(encPrivateKey),
+    encodeElipticCurve(encPublicKey),
+    Buffer.from(key.signAlg),
+    Buffer.from(key.encAlg),
+  ];
+  const data = encodeArrayUint8(payload);
 
   const counter = await crypto.getRandomValues(new Uint8Array(16));
 
@@ -76,12 +78,10 @@ export async function encodePrivateKey(
       iv: counter,
     },
     encKey,
-    new TextEncoder().encode(data)
+    data
   );
 
-  const buffer = new Uint8Array(result.byteLength + counter.byteLength);
-  buffer.set(counter, 0);
-  buffer.set(new Uint8Array(result), counter.byteLength);
+  const buffer = encodeArrayUint8([counter, new Uint8Array(result)]);
 
   if (bufferEncoding === "raw") return Buffer.from(buffer);
   return Buffer.from(buffer).toString(bufferEncoding);
@@ -89,21 +89,30 @@ export async function encodePrivateKey(
 
 export async function decodePrivateKey(
   dataKey: string,
-  password: string,
-  bufferEncoding: BufferEncoding = "base64"
+  encKey: CryptoKey
+): Promise<PrivateKey>;
+export async function decodePrivateKey(
+  dataKey: Buffer,
+  encKey: CryptoKey,
+  bufferEncoding: "raw"
+): Promise<PrivateKey>;
+export async function decodePrivateKey(
+  dataKey: string,
+  encKey: CryptoKey,
+  bufferEncoding: BufferEncoding
+): Promise<PrivateKey>;
+export async function decodePrivateKey(
+  dataKey: string | Buffer,
+  encKey: CryptoKey,
+  bufferEncoding: BufferEncoding | "raw" = "base64"
 ): Promise<PrivateKey> {
-  const encKey = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    "AES-GCM",
-    false,
-    ["decrypt"]
-  );
-  const dataDecoded = new Uint8Array(Buffer.from(dataKey, bufferEncoding));
-  const counter = new Uint8Array(dataDecoded.slice(0, 16));
-  const data = new Uint8Array(dataDecoded.slice(16, dataDecoded.length));
+  const dataDecoded =
+    bufferEncoding !== "raw"
+      ? new Uint8Array(Buffer.from(dataKey as string, bufferEncoding))
+      : new Uint8Array(dataKey as Buffer);
+  const [counter, data] = decodeArrayUint8(dataDecoded);
 
-  const result = await crypto.subtle.decrypt(
+  const dec = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
       iv: counter,
@@ -112,17 +121,19 @@ export async function decodePrivateKey(
     data
   );
 
-  const { sign_priv, enc_priv, sign_pub, enc_pub, sign_alg, enc_alg } =
-    JSON.parse(new TextDecoder().decode(result));
+  const [sign_priv, sign_pub, enc_priv, enc_pub, sign_alg, enc_alg] =
+    decodeArrayUint8(new Uint8Array(dec));
 
-  return {
-    signPrivateKey: BigInt(Buffer.from(sign_priv, "base64").toString()),
+  const textDecoder = new TextDecoder();
+  const result = {
+    signPrivateKey: decodeBigInteger(sign_priv),
     signPublicKey: decodeElipticCurve(sign_pub),
-    encPrivateKey: BigInt(Buffer.from(enc_priv, "base64").toString()),
+    encPrivateKey: decodeBigInteger(enc_priv),
     encPublicKey: decodeElipticCurve(enc_pub),
-    signAlg: sign_alg,
-    encAlg: enc_alg,
+    signAlg: textDecoder.decode(sign_alg),
+    encAlg: textDecoder.decode(enc_alg),
   };
+  return result;
 }
 
 export async function getPublicKey(key: PrivateKey): Promise<PublicKey> {
@@ -158,12 +169,21 @@ export async function encodePublicKey(
   return result.toString(bufferEncoding);
 }
 
+export async function decodePublicKey(data: string): Promise<PublicKey>;
 export async function decodePublicKey(
-  data: string,
-  bufferEncoding: BufferEncoding = "base64"
+  data: Buffer,
+  bufferEncoding: "raw"
+): Promise<PublicKey>;
+export async function decodePublicKey(
+  data: string | Buffer,
+  bufferEncoding: BufferEncoding | "raw" = "base64"
 ): Promise<PublicKey> {
+  const payload =
+    bufferEncoding === "raw"
+      ? (data as Buffer)
+      : Buffer.from(data as string, bufferEncoding);
   const [signPublicKey, encPublicKey, encAlg, signAlg] = decodeArrayUint8(
-    new Uint8Array(Buffer.from(data, bufferEncoding))
+    new Uint8Array(payload)
   );
 
   return {

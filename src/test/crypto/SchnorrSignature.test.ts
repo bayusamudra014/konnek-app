@@ -17,8 +17,12 @@ describe("Schnorr Signature Test", () => {
     const result = sign.verify(data, signature);
     expect(result).toBeTruthy();
 
-    signature[0] = signature[0] ^ 0xff;
+    signature[2] = signature[2] ^ 0xff;
     const result2 = await sign.verify(data, signature);
     expect(result2).toBeFalsy();
+
+    signature[0] = signature[0] ^ 0xff;
+    const result3 = await sign.verify(data, signature);
+    expect(result3).toBeFalsy();
   });
 });
