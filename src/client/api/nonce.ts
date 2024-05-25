@@ -1,3 +1,5 @@
+import "client-only";
+
 import { extractNonce } from "@/lib/crypto/Nonce";
 import http from "@/lib/http";
 import log from "@/lib/logger";

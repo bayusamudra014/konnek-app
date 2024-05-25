@@ -1,7 +1,9 @@
 import "client-only";
+
 import {
   CertificateKey,
   decodeCertificate,
+  encodeCertificateKey,
   encodeCertificateRequest,
   generateCertificateKey,
   generateCertificateRequest,
@@ -123,6 +125,42 @@ export async function generateKeypair(): Promise<GenerateKeypairResponse> {
     return {
       isSuccess: false,
       message: "failed to generate keypair: " + err.message,
+    };
+  }
+}
+
+export interface EncodeCertificateKey {
+  isSuccess: boolean;
+  file?: Blob;
+  message?: string;
+}
+
+export async function encodeCertificateKeyFile(
+  certificateKey: CertificateKey,
+  password: string
+): Promise<EncodeCertificateKey> {
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "AES-GCM",
+      true,
+      ["encrypt"]
+    );
+    const encoded = await encodeCertificateKey(certificateKey, key);
+    return {
+      isSuccess: true,
+      file: new Blob([encoded]),
+    };
+  } catch (err: any) {
+    log.error({
+      name: "register:encode_certificate_key",
+      msg: "failed to encode certificate key",
+      cause: err,
+    });
+    return {
+      isSuccess: false,
+      message: "failed to encode certificate key: " + err.message,
     };
   }
 }

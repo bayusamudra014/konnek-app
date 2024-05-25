@@ -1,6 +1,7 @@
+import "client-only";
+
 import { sign } from "@/lib/crypto";
-import { CertificateKey } from "@/lib/crypto/Certificate";
-import { extractNonce } from "@/lib/crypto/Nonce";
+import { CertificateKey, decodeCertificateKey } from "@/lib/crypto/Certificate";
 import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 import DiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
 import {
@@ -10,8 +11,7 @@ import {
 import { encodeArrayUint8, encodeBigInteger } from "@/lib/encoder/Encoder";
 import http from "@/lib/http";
 import log from "@/lib/logger";
-import "client-only";
-import { getNonce } from "./nonce";
+import { getNonce } from "@/client/api/nonce";
 
 export interface LoginResponse {
   isSuccess: boolean;
@@ -82,5 +82,58 @@ export async function login(
       cause: err,
     });
     return { isSuccess: false, message: "login failed: " + err.message };
+  }
+}
+
+export interface DecodeCertificateKey {
+  isSuccess: boolean;
+  certificateKey?: CertificateKey;
+  message?: string;
+}
+
+export async function decodeCertificateKeyFile(
+  file: Blob,
+  password: string
+): Promise<DecodeCertificateKey> {
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "AES-GCM",
+      true,
+      ["decrypt"]
+    );
+
+    const result = await decodeCertificateKey(buffer, key, "raw");
+
+    return {
+      isSuccess: true,
+      certificateKey: result,
+    };
+  } catch (err: any) {
+    if (err instanceof DOMException) {
+      log.error({
+        name: "login:decode_certificate_key",
+        msg: "wrong password",
+        cause: err,
+      });
+
+      return {
+        isSuccess: false,
+        message: "failed to decode certificate key: wrong password",
+      };
+    }
+
+    log.error({
+      name: "login:decode_certificate_key",
+      msg: "failed to decode certificate key",
+      cause: err,
+    });
+
+    return {
+      isSuccess: false,
+      message: "failed to decode certificate key: " + err.message,
+    };
   }
 }
