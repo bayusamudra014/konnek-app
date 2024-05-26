@@ -1,0 +1,62 @@
+/* HomePage.module.css */
+
+.container {
+  display: flex;
+  height: 100vh;
+  /* background-color: #f0f0f0; */
+}
+
+.leftArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* background-color: #ffffff; */
+  background-color: transparent;
+  padding: 20px;
+}
+
+.rightArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #e0e0e0;
+  /* background-color: transparent; */
+  padding: 20px;
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.loginButton {
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+}
+
+.loginButton:hover {
+  background-color: #0056b3;
+}
+
+.signupButton {
+  background-color: #28a745;
+  color: white;
+  text-align: center;
+}
+
+.signupButton:hover {
+  background-color: #218838;
+}

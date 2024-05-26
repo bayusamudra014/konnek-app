@@ -1,13 +1,21 @@
-import { Box, ChakraProvider } from "@chakra-ui/react";
+import "../styles/globals.css";
 import type { AppProps } from "next/app";
+import Header from "@/components/Header";
+import { DarkModeProvider, useDarkMode } from "@/context/DarkModeContext";
 
-import "@/client/firebase";
-import theme from "@/styles/theme";
+//cannot find name darkmode
+//darkmode is not defined
 
-export default function App({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps }: AppProps) {
+  const { isDarkMode } = useDarkMode();
   return (
-    <ChakraProvider theme={theme}>
-      <Component {...pageProps} />
-    </ChakraProvider>
+    <DarkModeProvider>
+      <div className={isDarkMode ? "dark" : ""}>
+        <Header />
+        <Component {...pageProps} />
+      </div>
+    </DarkModeProvider>
   );
 }
+
+export default MyApp;
