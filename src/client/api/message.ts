@@ -74,7 +74,9 @@ export async function getMessages(
           to: el.to,
           from: el.from,
           timestamp: el.timestamp,
-          signature: new Uint8Array(Buffer.from(el.signature, "base64")),
+          signature: el.signature
+            ? new Uint8Array(Buffer.from(el.signature, "base64"))
+            : undefined,
           message: el.message,
         } as Message)
     );

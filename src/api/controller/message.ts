@@ -56,7 +56,9 @@ export async function getMessages(token: string, after: string | null = null) {
       from,
       timestamp,
       message: Buffer.from(message).toString("base64"),
-      signature: Buffer.from(signature).toString("base64"),
+      signature: signature
+        ? Buffer.from(signature).toString("base64")
+        : undefined,
     });
   });
 

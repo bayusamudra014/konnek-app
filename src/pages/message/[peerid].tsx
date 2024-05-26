@@ -417,7 +417,13 @@ export default function MessagePage() {
 
   return (
     <CenterPage>
-      <Card maxW="80vw" width="100%" maxHeight="90vh" height="100vh">
+      <Card
+        maxW="80vw"
+        width="100%"
+        maxHeight="90vh"
+        height="100vh"
+        display="flex"
+      >
         <CardHeader
           alignItems="center"
           display="flex"
@@ -432,7 +438,7 @@ export default function MessagePage() {
             <FormControl display="flex" alignItems="center">
               <Switch
                 id="with-signature"
-                onClick={() => setWithSignature(!withSignature)}
+                onChange={() => setWithSignature(!withSignature)}
                 isChecked={withSignature}
               />
               <FormLabel htmlFor="with-signature" ml={2}>
@@ -444,14 +450,12 @@ export default function MessagePage() {
             <IoMdHome />
           </Button>
         </CardHeader>
-        <CardBody>
+        <CardBody overflow="auto">
           <Box
             display="flex"
             flexDirection="column"
             gap={4}
             fontSize="large"
-            overflow="auto"
-            height="70vh"
             padding="20px"
           >
             {messages.map((message) => {
