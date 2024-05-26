@@ -11,5 +11,4 @@ export default withPWA({
   output: "standalone",
   productionBrowserSourceMaps: false,
   swcMinify: true,
-  compress: false,
 });
