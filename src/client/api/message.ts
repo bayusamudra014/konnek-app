@@ -1,20 +1,25 @@
 import "client-only";
 
 import { decrypt, encrypt, sign, verify } from "@/lib/crypto";
-import { CertificateKey, verifyCertificate } from "@/lib/crypto/Certificate";
+import {
+  Certificate,
+  CertificateKey,
+  verifyCertificate,
+} from "@/lib/crypto/Certificate";
 import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 import { encodeArrayUint8, encodeBigInteger } from "@/lib/encoder/Encoder";
 import http from "@/lib/http";
 import log from "@/lib/logger";
 import { getCertificate } from "./certificate";
 import { CA_NAME } from "@/lib/crypto/const";
-import { db } from "@/client/db";
+import { StoredMessage, db } from "@/client/db";
+import { Cipher } from "@/lib/crypto/cipher/Cipher";
 
 export interface Message {
   to: string;
   from: string;
   timestamp: number;
-  signature: Uint8Array;
+  signature?: Uint8Array;
   message: string;
 }
 
@@ -26,7 +31,7 @@ export interface GetMessageResponse {
 
 export async function getMessages(
   token: string,
-  cipher: MeongCipher,
+  cipher: Cipher,
   after?: number
 ): Promise<GetMessageResponse> {
   try {
@@ -39,7 +44,9 @@ export async function getMessages(
         Authorization: `Bearer ${token}`,
       },
       params: {
-        after: encryptedAfter,
+        after: encryptedAfter
+          ? Buffer.from(encryptedAfter).toString("base64")
+          : null,
       },
     });
 
@@ -94,7 +101,7 @@ export async function sendMessage(
   token: string,
   to: string,
   message: string,
-  serverCipher: MeongCipher,
+  serverCipher: Cipher,
   userId: string,
   certificateKey?: CertificateKey
 ): Promise<SendMessageResponse> {
@@ -217,6 +224,8 @@ export async function validateMessage(
   message: Message
 ): Promise<ValidateMessageResponse> {
   try {
+    if (!message.signature) return { isValid: false, message: "no signature" };
+
     const caCertificate = await getCertificate(CA_NAME);
     const certificate = await getCertificate(message.from);
 
@@ -319,7 +328,18 @@ export async function storeMessages(
   message: Message[]
 ): Promise<StoreMessagesResponse> {
   try {
-    await db.messages.bulkPut(message);
+    const result: StoredMessage[] = message.map((el) => ({
+      to: el.to,
+      from: el.from,
+      timestamp: el.timestamp,
+      signature: el.signature
+        ? Buffer.from(el.signature).toString("base64")
+        : null,
+      message: el.message,
+    }));
+
+    await db.messages.bulkPut(result);
+
     return {
       isSuccess: true,
     };
@@ -354,7 +374,15 @@ export async function getStoredMessages(
       .sortBy("timestamp");
     return {
       isSuccess: true,
-      data: result,
+      data: result.map((el) => ({
+        to: el.to,
+        from: el.from,
+        timestamp: el.timestamp,
+        signature: el.signature
+          ? new Uint8Array(Buffer.from(el.signature, "base64"))
+          : undefined,
+        message: el.message,
+      })),
     };
   } catch (err: any) {
     log.error({

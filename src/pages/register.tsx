@@ -56,94 +56,97 @@ export default function Register() {
   const toast = useToast();
 
   const onRegister = async () => {
-    if (password === "") {
-      setPasswordValid(false);
-      setPasswordErrorMessage("Password is required");
-    }
-
-    if (password.length < 8) {
-      setPasswordValid(false);
-      setPasswordErrorMessage("Password should be at least 8 characters");
-    }
-
-    if (passwordVerify === "") {
-      setPasswordVerifyValid(false);
-      setPasswordVerifyErrorMessage("Password Verify is required");
-    }
-
-    if (password !== passwordVerify) {
-      setPasswordVerifyValid(false);
-      setPasswordVerifyErrorMessage(
-        "Password Verify should be same as Password"
-      );
-    }
-
-    if (
-      password === "" ||
-      passwordVerify === "" ||
-      password !== passwordVerify
-    ) {
-      return;
-    }
-
-    setPasswordValid(true);
-    setPasswordVerifyValid(true);
-
     setLoading(true);
 
-    const keypairResponse = await generateKeypair();
+    try {
+      if (password === "") {
+        setPasswordValid(false);
+        setPasswordErrorMessage("Password is required");
+      }
 
-    if (!keypairResponse.isSuccess) {
-      toast({
-        title: "Failed to generate keypair",
-        description: keypairResponse.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      if (password.length < 8) {
+        setPasswordValid(false);
+        setPasswordErrorMessage("Password should be at least 8 characters");
+      }
+
+      if (passwordVerify === "") {
+        setPasswordVerifyValid(false);
+        setPasswordVerifyErrorMessage("Password Verify is required");
+      }
+
+      if (password !== passwordVerify) {
+        setPasswordVerifyValid(false);
+        setPasswordVerifyErrorMessage(
+          "Password Verify should be same as Password"
+        );
+      }
+
+      if (
+        password === "" ||
+        passwordVerify === "" ||
+        password !== passwordVerify
+      ) {
+        return;
+      }
+
+      setPasswordValid(true);
+      setPasswordVerifyValid(true);
+
+      const keypairResponse = await generateKeypair();
+
+      if (!keypairResponse.isSuccess) {
+        toast({
+          title: "Failed to generate keypair",
+          description: keypairResponse.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const registerResponse = await register(keypairResponse.privateKey!);
+
+      if (!registerResponse.isSuccess) {
+        toast({
+          title: "Failed to register",
+          description: registerResponse.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const userId = registerResponse.certificateKey!.userId;
+      setUserId(userId);
+
+      const resultFile = await encodeCertificateKeyFile(
+        registerResponse.certificateKey!,
+        password
+      );
+
+      if (!resultFile.isSuccess) {
+        toast({
+          title: "Failed to encode certificate key",
+          description: resultFile.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        setLoading(false);
+        return;
+      }
+
+      setFileKey(resultFile.file!);
+      downloadBlob(resultFile.file!, `${userId}.key`);
+
+      onOpen();
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const registerResponse = await register(keypairResponse.privateKey!);
-
-    if (!registerResponse.isSuccess) {
-      toast({
-        title: "Failed to register",
-        description: registerResponse.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      setLoading(false);
-      return;
-    }
-
-    const userId = registerResponse.certificateKey!.userId;
-    setUserId(userId);
-
-    const resultFile = await encodeCertificateKeyFile(
-      registerResponse.certificateKey!,
-      password
-    );
-
-    if (!resultFile.isSuccess) {
-      toast({
-        title: "Failed to encode certificate key",
-        description: resultFile.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      setLoading(false);
-      return;
-    }
-
-    setFileKey(resultFile.file!);
-    downloadBlob(resultFile.file!, `${userId}.key`);
-
-    onOpen();
-    setLoading(false);
   };
 
   return (

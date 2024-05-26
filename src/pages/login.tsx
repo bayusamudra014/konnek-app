@@ -33,6 +33,7 @@ export default function Login() {
     setCertificateKey,
   } = useContext(AuthContext);
 
+  const [onLoad, setLoad] = useState(false);
   const [show, setShow] = useState(false);
   const router = useRouter();
   const toast = useToast();
@@ -103,79 +104,84 @@ export default function Login() {
   }
 
   const onLogin = async () => {
-    const file = fileRef.current?.files?.[0];
-    if (!file) {
-      setFileValid(false);
-      setFileErrorMessage("Private key is required");
-    }
-
-    if (password === "") {
-      setPasswordValid(false);
-      setPasswordErrorMessage("Password is required");
-    }
-
-    if (!file || password === "") {
-      return;
-    }
-
-    setFileValid(true);
-    setPasswordValid(true);
-
-    const certificateKey = await decodeCertificateKeyFile(file, password);
-
-    if (!certificateKey.isSuccess) {
-      if (certificateKey.message?.indexOf("Invalid password") != -1) {
-        setPasswordValid(false);
-        setPasswordErrorMessage("Password is not correct");
+    setLoad(true);
+    try {
+      const file = fileRef.current?.files?.[0];
+      if (!file) {
+        setFileValid(false);
+        setFileErrorMessage("Private key is required");
       }
 
+      if (password === "") {
+        setPasswordValid(false);
+        setPasswordErrorMessage("Password is required");
+      }
+
+      if (!file || password === "") {
+        return;
+      }
+
+      setFileValid(true);
+      setPasswordValid(true);
+
+      const certificateKey = await decodeCertificateKeyFile(file, password);
+
+      if (!certificateKey.isSuccess) {
+        if (certificateKey.message?.indexOf("Invalid password") != -1) {
+          setPasswordValid(false);
+          setPasswordErrorMessage("Password is not correct");
+        }
+
+        toast({
+          title: "Login Failed",
+          description: certificateKey.message,
+          duration: 3000,
+          isClosable: true,
+          status: "error",
+        });
+        return;
+      }
+
+      if (!fcmToken) {
+        toast({
+          title: "Login Failed",
+          description: "Failed to get FCM token. Please wait a moment",
+          duration: 3000,
+          isClosable: true,
+          status: "error",
+        });
+        return;
+      }
+
+      const result = await login(certificateKey.certificateKey!, fcmToken);
+
+      if (!result.isSuccess) {
+        toast({
+          title: "Login Failed",
+          description: result.message,
+          duration: 3000,
+          isClosable: true,
+          status: "error",
+        });
+        return;
+      }
+
+      setToken(result.token!);
+      setCipher(result.cipher!);
+      setCertificateKey(certificateKey.certificateKey!);
+
       toast({
-        title: "Login Failed",
-        description: certificateKey.message,
+        title: "Login Success",
+        description: "You have successfully logged in",
         duration: 3000,
         isClosable: true,
-        status: "error",
+        status: "success",
       });
-      return;
+
+      router.push("/");
+    } finally {
+      setLoad(false);
     }
-
-    if (!fcmToken) {
-      toast({
-        title: "Login Failed",
-        description: "Failed to get FCM token. Please wait a moment",
-        duration: 3000,
-        isClosable: true,
-        status: "error",
-      });
-      return;
-    }
-
-    const result = await login(certificateKey.certificateKey!, fcmToken);
-
-    if (!result.isSuccess) {
-      toast({
-        title: "Login Failed",
-        description: result.message,
-        duration: 3000,
-        isClosable: true,
-        status: "error",
-      });
-      return;
-    }
-
-    setToken(result.token!);
-    setCipher(result.cipher!);
-    setCertificateKey(certificateKey.certificateKey!);
-
-    toast({
-      title: "Login Success",
-      description: "You have successfully logged in",
-      duration: 3000,
-      isClosable: true,
-      status: "success",
-    });
-
-    router.push("/");
   };
 
   return (
@@ -226,7 +232,7 @@ export default function Login() {
           )}
         </FormControl>
         <Box display="flex" gap={3} alignItems="center">
-          <Button colorScheme="green" onClick={onLogin}>
+          <Button colorScheme="green" onClick={onLogin} isLoading={onLoad}>
             Login
           </Button>
           <Link

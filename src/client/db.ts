@@ -1,14 +1,21 @@
 import "client-only";
 import Dexie, { Table } from "dexie";
-import { Message } from "@/client/api/message";
+
+export interface StoredMessage {
+  to: string;
+  from: string;
+  timestamp: number;
+  signature: string | null;
+  message: string;
+}
 
 export class Database extends Dexie {
-  messages: Table<Message>;
+  messages: Table<StoredMessage>;
 
   constructor() {
     super("AppDatabase");
     this.version(1).stores({
-      message: "id, timestamp, from, to, message, signature",
+      messages: "++id, timestamp, from, to",
     });
     this.messages = this.table("messages");
   }

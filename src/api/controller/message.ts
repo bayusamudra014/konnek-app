@@ -5,11 +5,9 @@ import log from "@/lib/logger";
 
 import { NextResponse } from "next/server";
 import firestoreAdmin from "../firestore";
-import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 import { parseToken } from "./auth";
 import storageAdmin from "../storage";
 import messagingAdmin from "../messaging";
-import { CTRBlock } from "@/lib/crypto/block/counter";
 import { getCipher } from "@/lib/CipherUtil";
 import { CipherType } from "@/lib/CipherType";
 
@@ -34,17 +32,18 @@ export async function getMessages(token: string, after: string | null = null) {
 
   if (after) {
     const afterDec = Number(
-      decodeBigInteger(cipher.decrypt(Buffer.from(after)))
+      decodeBigInteger(cipher.decrypt(Buffer.from(after, "base64")))
     );
 
     data = await firestoreAdmin
-      .collection(`message/${userId}`)
+      .collection(`users/${userId}/messages`)
       .where("timestamp", ">", afterDec)
       .orderBy("timestamp")
       .get();
   } else {
     data = await firestoreAdmin
-      .collection(`message/${userId}`)
+      .collection(`users/${userId}/messages`)
+      .where("timestamp", ">", new Date().getTime())
       .orderBy("timestamp")
       .get();
   }
@@ -129,14 +128,14 @@ export async function sendMessage(token: string, data: string) {
     );
   }
 
-  await firestoreAdmin.collection(`message/${userId}`).add({
+  await firestoreAdmin.collection(`users/${userId}/messages`).add({
     from: userId,
     to,
     message,
     timestamp,
     signature,
   });
-  await firestoreAdmin.collection(`message/${to}`).add({
+  await firestoreAdmin.collection(`users/${to}/messages`).add({
     from: userId,
     to,
     message,
@@ -145,14 +144,22 @@ export async function sendMessage(token: string, data: string) {
   });
 
   const loginInfo = (
-    await firestoreAdmin.collection("user_login").doc(to).get()
+    await firestoreAdmin.collection("users").doc(to).get()
   ).data();
 
   if (loginInfo && loginInfo.firebaseId) {
-    await messagingAdmin.send({
-      token: loginInfo.firebaseId,
-      data: { msg: "new_message", from: userId, to },
-    });
+    try {
+      await messagingAdmin.send({
+        token: loginInfo.firebaseId,
+        data: { msg: "new_message", message_from: userId, message_to: to },
+      });
+    } catch (err) {
+      log.error({
+        name: "message:send",
+        msg: "failed_to_send_notification",
+        err,
+      });
+    }
   } else if (loginInfo && !loginInfo.firebaseId) {
     log.debug({
       name: "message:send",

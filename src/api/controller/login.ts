@@ -219,7 +219,7 @@ export async function login(
 
   // Save user info to database
   try {
-    await firestoreAdmin.collection(`user_login`).doc(userId).set({
+    await firestoreAdmin.collection(`users`).doc(userId).set({
       firebaseId,
     });
   } catch (err) {
