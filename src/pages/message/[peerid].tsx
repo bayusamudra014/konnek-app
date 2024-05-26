@@ -458,6 +458,10 @@ export default function MessagePage() {
             fontSize="large"
             padding="20px"
           >
+            <Text textAlign="center" fontSize="small" color="gray.500">
+              Communication between {certificateKey?.userId} and {peerId}{" "}
+              secured by end to end encryption
+            </Text>
             {messages.map((message) => {
               if (message.from === peerId) {
                 return <PeerMessage message={message} />;
