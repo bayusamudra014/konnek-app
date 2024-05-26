@@ -82,13 +82,14 @@ export default function Homepage() {
   }
 
   const onStartMessage = () => {
+    const trimmedPeerId = peerId.trim();
     log.info({
       msg: "start message",
       name: "homepage",
       peerId,
     });
 
-    if (peerId === "") {
+    if (trimmedPeerId === "") {
       toast({
         status: "error",
         position: "bottom",
@@ -99,7 +100,18 @@ export default function Homepage() {
       return;
     }
 
-    router.push(`/message/${peerId}`);
+    if (trimmedPeerId === certificateKey!.userId) {
+      toast({
+        status: "error",
+        position: "bottom",
+        title: "Messaging",
+        description: "You can't send message to yourself",
+      });
+
+      return;
+    }
+
+    router.push(`/message/${trimmedPeerId.trim()}`);
   };
 
   return (
