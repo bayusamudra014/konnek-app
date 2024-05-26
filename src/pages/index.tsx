@@ -15,6 +15,7 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 
@@ -116,6 +117,9 @@ export default function Homepage() {
 
   return (
     <CenterPage>
+      <Head>
+        <title>Homepage | Konnek App</title>
+      </Head>
       <Box>
         <Box>
           <Heading mb={2}>Welcome</Heading>

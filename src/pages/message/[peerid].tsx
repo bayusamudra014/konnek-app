@@ -42,6 +42,7 @@ import { HiBadgeCheck } from "react-icons/hi";
 import { RiForbidFill } from "react-icons/ri";
 import { encrypt } from "@/lib/crypto";
 import { db } from "@/client/db";
+import Head from "next/head";
 
 interface ShowMessage extends DecryptedMessage {
   encrypted: string;
@@ -417,6 +418,9 @@ export default function MessagePage() {
 
   return (
     <CenterPage>
+      <Head>
+        <title>Message with {peerId} | Konnek App</title>
+      </Head>
       <Card
         maxW="80vw"
         width="100%"
