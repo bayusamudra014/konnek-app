@@ -369,7 +369,6 @@ export async function decodeCertificateKey(
     bufferEncoding === "raw"
       ? (data as Buffer)
       : Buffer.from(data as string, bufferEncoding);
-  const buffer = new Uint8Array(payload);
   const [iv, encrypted] = decodeArrayUint8(payload);
 
   const decrypted = await crypto.subtle.decrypt(
@@ -378,7 +377,7 @@ export async function decodeCertificateKey(
       iv,
     },
     key,
-    encrypted
+    Buffer.from(encrypted)
   );
 
   const [

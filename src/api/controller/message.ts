@@ -9,6 +9,9 @@ import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 import { parseToken } from "./auth";
 import storageAdmin from "../storage";
 import messagingAdmin from "../messaging";
+import { CTRBlock } from "@/lib/crypto/block/counter";
+import { getCipher } from "@/lib/CipherUtil";
+import { CipherType } from "@/lib/CipherType";
 
 export async function getMessages(token: string, after: string | null = null) {
   let userId, sessionKey;
@@ -26,7 +29,7 @@ export async function getMessages(token: string, after: string | null = null) {
     );
   }
 
-  const cipher = new MeongCipher(sessionKey);
+  const cipher = getCipher(CipherType.CTR, sessionKey);
   let data;
 
   if (after) {
@@ -83,7 +86,7 @@ export async function sendMessage(token: string, data: string) {
     );
   }
 
-  const cipher = new MeongCipher(sessionKey);
+  const cipher = getCipher(CipherType.CTR, sessionKey);
 
   const decrypted = Buffer.from(
     cipher.decrypt(Buffer.from(data, "base64"))

@@ -10,7 +10,7 @@ import log from "@/lib/logger";
 import { getToken } from "firebase/messaging";
 import { useEffect, useState } from "react";
 
-async function getPermission() {
+export async function getPermission() {
   log.debug({ name: "fcm", msg: "request notification permission" });
   const permission = await Notification.requestPermission();
 

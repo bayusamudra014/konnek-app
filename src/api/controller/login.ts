@@ -10,12 +10,13 @@ import {
   decodeElipticCurve,
   encodeElipticCurve,
 } from "@/lib/crypto/math/EllipticCurve";
-import { verify } from "@/lib/crypto";
+import { encrypt, verify } from "@/lib/crypto";
 import { encodeArrayUint8, encodeBigInteger } from "@/lib/encoder/Encoder";
 import DiffieHellman from "@/lib/crypto/keyexchange/ElipticCurveDiffieHellman";
 import jwt from "jsonwebtoken";
-import { MeongCipher } from "@/lib/crypto/cipher/MeongCipher";
 import firestoreAdmin from "@/api/firestore";
+import { getCipher } from "@/lib/CipherUtil";
+import { CipherType } from "@/lib/CipherType";
 
 const macKey = process.env.MAC_KEY;
 const encryptionKey = process.env.ENCRYPTION_KEY;
@@ -47,6 +48,18 @@ export async function login(
 
   if (!macKey) {
     log.error({ name: "register", msg: "no_mac_key" });
+    return NextResponse.json(
+      {
+        status: "failed",
+        message: "internal server error",
+        data: null,
+      },
+      { status: 500 }
+    );
+  }
+
+  if (!encryptionKey || encryptionKey.length !== 16) {
+    log.error({ name: "register", msg: "bad_encryption_key" });
     return NextResponse.json(
       {
         status: "failed",
@@ -196,7 +209,7 @@ export async function login(
     }
   );
 
-  const cipher = new MeongCipher(sharedSecret);
+  const cipher = getCipher(CipherType.CTR, sharedSecret);
   const encToken = Buffer.from(cipher.encrypt(Buffer.from(token))).toString(
     "base64"
   );
@@ -205,9 +218,25 @@ export async function login(
   );
 
   // Save user info to database
-  await firestoreAdmin.collection(`user_login`).doc(userId).set({
-    firebaseId,
-  });
+  try {
+    await firestoreAdmin.collection(`user_login`).doc(userId).set({
+      firebaseId,
+    });
+  } catch (err) {
+    log.error({
+      name: "login",
+      msg: "failed_to_save_user",
+      data: { userId },
+    });
+    return NextResponse.json(
+      {
+        status: "failed",
+        message: "internal server error",
+        data: null,
+      },
+      { status: 500 }
+    );
+  }
 
   log.info({
     name: "login",

@@ -54,7 +54,7 @@ export async function registerUser(
     new TextEncoder().encode(caPrivateKeyPassword),
     "AES-GCM",
     false,
-    ["encrypt"]
+    ["decrypt"]
   );
 
   if (!macKey) {

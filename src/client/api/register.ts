@@ -16,6 +16,7 @@ import http from "@/lib/http";
 import { getCertificate } from "./certificate";
 import { CA_NAME } from "@/lib/crypto/const";
 import log from "@/lib/logger";
+import { SHA256 } from "@/lib/crypto/digest/SHA2";
 
 export interface RegisterResponse {
   isSuccess: boolean;
@@ -140,9 +141,12 @@ export async function encodeCertificateKeyFile(
   password: string
 ): Promise<EncodeCertificateKey> {
   try {
+    const hash = new SHA256();
+    const hashPassword = await hash.calculate(Buffer.from(password, "utf-8"));
+
     const key = await crypto.subtle.importKey(
       "raw",
-      new TextEncoder().encode(password),
+      hashPassword,
       "AES-GCM",
       true,
       ["encrypt"]

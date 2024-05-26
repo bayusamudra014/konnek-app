@@ -13,12 +13,17 @@ import { encodeArrayUint8, encodeBigInteger } from "@/lib/encoder/Encoder";
 import http from "@/lib/http";
 import log from "@/lib/logger";
 import { getNonce } from "@/client/api/nonce";
+import { SHA256 } from "@/lib/crypto/digest/SHA2";
+import { CTRBlock } from "@/lib/crypto/block/counter";
+import { Cipher } from "@/lib/crypto/cipher/Cipher";
+import { getCipher } from "@/lib/CipherUtil";
+import { CipherType } from "@/lib/CipherType";
 
 export interface LoginResponse {
   isSuccess: boolean;
   message?: string;
   token?: string;
-  cipher?: MeongCipher;
+  cipher?: Cipher;
 }
 
 export async function login(
@@ -74,7 +79,7 @@ export async function login(
     );
 
     const sessionKey = dh.generateSharedSecret(serverPubDh, privDh);
-    const cipher = new MeongCipher(sessionKey);
+    const cipher = getCipher(CipherType.CTR, sessionKey);
 
     const token = Buffer.from(
       await cipher.decrypt(Buffer.from(encryptedToken, "base64"))
@@ -101,10 +106,13 @@ export async function decodeCertificateKeyFile(
   password: string
 ): Promise<DecodeCertificateKey> {
   try {
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = Buffer.from(await file.text(), "base64");
+    const hash = new SHA256();
+    const hashPassword = await hash.calculate(Buffer.from(password, "utf-8"));
+
     const key = await crypto.subtle.importKey(
       "raw",
-      new TextEncoder().encode(password),
+      hashPassword,
       "AES-GCM",
       true,
       ["decrypt"]

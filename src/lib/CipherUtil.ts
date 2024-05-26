@@ -11,7 +11,7 @@ export function encryptFromString(
   key: string,
   message: string
 ): Uint8Array {
-  const cipher = getCipher(type, key);
+  const cipher = getCipher(type, Buffer.from(key));
   return cipher.encrypt(encodeString(message));
 }
 
@@ -20,7 +20,7 @@ export function encryptRawBuffer(
   key: string,
   buffer: Buffer
 ): Uint8Array {
-  const cipher = getCipher(type, key);
+  const cipher = getCipher(type, Buffer.from(key));
   return cipher.encrypt(buffer);
 }
 
@@ -34,7 +34,7 @@ export function encryptString(
   key: string,
   data: string
 ): string {
-  const cipher = getCipher(type, key);
+  const cipher = getCipher(type, Buffer.from(key));
   return Buffer.from(cipher.encrypt(encodeString(data))).toString("base64");
 }
 
@@ -43,7 +43,7 @@ export function decryptToString(
   key: string,
   message: string
 ): string {
-  const cipher = getCipher(type, key);
+  const cipher = getCipher(type, Buffer.from(key));
   const ciphertext = Buffer.from(message, "base64").valueOf();
   return Buffer.from(cipher.decrypt(ciphertext)).toString("utf-8");
 }
@@ -53,15 +53,14 @@ export function decryptFile(
   key: string,
   encryptedFile: Buffer
 ): Buffer {
-  const cipher = getCipher(type, key);
+  const cipher = getCipher(type, Buffer.from(key));
   const result = cipher.decrypt(encryptedFile);
 
   return Buffer.from(result);
 }
 
-export function getCipher(type: CipherType, key: string): Cipher {
-  const masterKey = masterKeyGenerator(key);
-  const cipher = new MeongCipher(masterKey);
+export function getCipher(type: CipherType, key: Uint8Array): Cipher {
+  const cipher = new MeongCipher(key);
 
   switch (type) {
     case CipherType.CTR:
